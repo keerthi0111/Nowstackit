@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSV Importer for Google Sheets</title>
+    <style>
+        /* Style the drop zone */
+        #drop-zone {
+            width: 300px;
+            height: 200px;
+            border: 2px dashed #ccc;
+            border-radius: 10px;
+            text-align: center;
+            margin: 20px auto;
+        }
+
+        /* Style for file input (hidden) */
+        #file-input {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>CSV Importer for Google Sheets</h1>
+    <p>Drag and drop a CSV file here or click to select one.</p>
+
+    <!-- Create a drop zone for dragging and dropping files -->
+    <div id="drop-zone">
+        <p>Drop CSV file here</p>
+    </div>
+
+    <!-- Create a file input element (hidden) -->
+    <input type="file" id="file-input" accept=".csv">
+
+    <script>
+        // Get references to HTML elements
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+
+        // Prevent default behavior for drag-and-drop events
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.style.border = '2px dashed #aaa';
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.style.border = '2px dashed #ccc';
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.style.border = '2px dashed #ccc';
+
+            // Get the dropped file
+            const file = e.dataTransfer.files[0];
+
+            // Check if the file is a CSV
+            if (file && file.name.endsWith('.csv')) {
+                // Process the CSV file here (you can add code for processing)
+                alert('CSV file dropped: ' + file.name);
+            } else {
+                alert('Please drop a valid CSV file.');
+            }
+        });
+
+        // Trigger file input click when the drop zone is clicked
+        dropZone.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        // Handle file input change event
+        fileInput.addEventListener('change', () => {
+            const selectedFile = fileInput.files[0];
+            if (selectedFile && selectedFile.name.endsWith('.csv')) {
+                // Process the selected CSV file here
+                alert('CSV file selected: ' + selectedFile.name);
+            } else {
+                alert('Please select a valid CSV file.');
+            }
+        });
+    </script>
+</body>
+</html>
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSV Parsing Example</title>
+</head>
+<body>
+    <input type="file" id="file-input" accept=".csv">
+    <div id="csv-content"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <script>
+        // Get references to HTML elements
+        const fileInput = document.getElementById('file-input');
+        const csvContent = document.getElementById('csv-content');
+
+        // Handle file input change event
+        fileInput.addEventListener('change', (e) => {
+            const selectedFile = e.target.files[0];
+
+            if (selectedFile && selectedFile.name.endsWith('.csv')) {
+                // Read and parse the CSV file using papaparse
+                Papa.parse(selectedFile, {
+                    header: true, // Treat the first row as headers
+                    delimiter: ',', // You can specify the delimiter used in your CSV
+                    skipEmptyLines: true, // Skip empty lines
+                    dynamicTyping: true, // Automatically convert values to appropriate types
+
+                    complete: function (results) {
+                        // Callback function when parsing is complete
+                        displayCSVData(results.data);
+                    },
+                    error: function (error) {
+                        // Callback function if there's an error during parsing
+                        console.error('CSV Parsing Error:', error.message);
+                    }
+                });
+            } else {
+                csvContent.innerHTML = 'Please select a valid CSV file.';
+            }
+        });
+
+        // Display parsed CSV data in a div
+        function displayCSVData(data) {
+            let html = '<table border="1"><tr>';
+
+            // Create headers
+            for (const header of Object.keys(data[0])) {
+                html += `<th>${header}</th>`;
+            }
+            html += '</tr>';
+
+            // Create rows
+            for (const row of data) {
+                html += '<tr>';
+                for (const value of Object.values(row)) {
+                    html += `<td>${value}</td>`;
+                }
+                html += '</tr>';
+            }
+
+            html += '</table>';
+            csvContent.innerHTML = html;
+        }
+    </script>
+</body>
+</html>
+

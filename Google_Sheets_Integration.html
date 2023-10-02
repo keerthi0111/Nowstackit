@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Sheets Integration Example</title>
+</head>
+<body>
+    <input type="file" id="file-input" accept=".csv">
+    <div id="csv-content"></div>
+    <button id="import-button">Import to Google Sheets</button>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <script>
+        // Constants for Google Sheets API
+        const CLIENT_ID = 'YOUR_CLIENT_ID'; // Replace with your Google Cloud OAuth client ID
+        const API_KEY = 'YOUR_API_KEY'; // Replace with your Google Cloud API key
+        const DISCOVERY_DOCS = ['https://sheets.googleapis.com/$discovery/rest?version=v4'];
+        const SCOPES = 'https://www.googleapis.com/auth/spreadsheets';
+
+        // Get references to HTML elements
+        const fileInput = document.getElementById('file-input');
+        const csvContent = document.getElementById('csv-content');
+        const importButton = document.getElementById('import-button');
+
+        let csvData; // Store parsed CSV data
+
+        // Handle file input change event
+        fileInput.addEventListener('change', (e) => {
+            const selectedFile = e.target.files[0];
+
+            if (selectedFile && selectedFile.name.endsWith('.csv')) {
+                // Read and parse the CSV file using papaparse
+                Papa.parse(selectedFile, {
+                    header: true,
+                    delimiter: ',',
+                    skipEmptyLines: true,
+                    dynamicTyping: true,
+
+                    complete: function (results) {
+                        csvData = results.data;
+                        displayCSVData(csvData);
+                    },
+                    error: function (error) {
+                        console.error('CSV Parsing Error:', error.message);
+                    }
+                });
+            } else {
+                csvContent.innerHTML = 'Please select a valid CSV file.';
+            }
+        });
+
+        // Display parsed CSV data in a table
+        function displayCSVData(data) {
+            let html = '<table border="1"><tr>';
+
+            for (const header of Object.keys(data[0])) {
+                html += `<th>${header}</th>`;
+            }
+            html += '</tr>';
+
+            for (const row of data) {
+                html += '<tr>';
+                for (const value of Object.values(row)) {
+                    html += `<td>${value}</td>`;
+                }
+                html += '</tr>';
+            }
+
+            html += '</table>';
+            csvContent.innerHTML = html;
+        }
+
+        // Handle the import to Google Sheets button click
+        importButton.addEventListener('click', () => {
+            // Initialize the Google API client
+            gapi.load('client', () => {
+                gapi.client.init({
+                    apiKey: API_KEY,
+                    clientId: CLIENT_ID,
+                    discoveryDocs: DISCOVERY_DOCS,
+                    scope: SCOPES,
+                }).then(() => {
+                    // Handle the authorization and import to Google Sheets here
+                    // For brevity, this example focuses on CSV parsing and authentication setup
+                });
+            });
+        });
+    </script>
+    <script async defer src="https://apis.google.com/js/api.js"></script>
+</body>
+</html>

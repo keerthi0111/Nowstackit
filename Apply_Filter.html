@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Filtering Example</title>
+</head>
+<body>
+    <input type="file" id="file-input" accept=".csv">
+    <div id="csv-content"></div>
+    <div id="column-selection">
+        <h2>Select Columns to Import:</h2>
+        <form id="column-form"></form>
+    </div>
+    <div id="filter-options">
+        <h2>Data Filtering (Optional):</h2>
+        <label for="numeric-column">Numeric Column:</label>
+        <select id="numeric-column"></select>
+        <label for="min-value">Min Value:</label>
+        <input type="number" id="min-value">
+        <label for="max-value">Max Value:</label>
+        <input type="number" id="max-value">
+        <button id="apply-filter">Apply Filter</button>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <script>
+        // Get references to HTML elements
+        const fileInput = document.getElementById('file-input');
+        const csvContent = document.getElementById('csv-content');
+        const columnForm = document.getElementById('column-form');
+        const numericColumnSelect = document.getElementById('numeric-column');
+        const minValueInput = document.getElementById('min-value');
+        const maxValueInput = document.getElementById('max-value');
+        const applyFilterButton = document.getElementById('apply-filter');
+
+        let csvData; // Store parsed CSV data
+
+        // Handle file input change event
+        fileInput.addEventListener('change', (e) => {
+            const selectedFile = e.target.files[0];
+
+            if (selectedFile && selectedFile.name.endsWith('.csv')) {
+                // Read and parse the CSV file using papaparse
+                Papa.parse(selectedFile, {
+                    header: true,
+                    delimiter: ',',
+                    skipEmptyLines: true,
+                    dynamicTyping: true,
+
+                    complete: function (results) {
+                        csvData = results.data;
+                        displayCSVData(csvData);
+                        createColumnSelectionForm(csvData[0]);
+                        populateNumericColumnSelect(csvData[0]);
+                    },
+                    error: function (error) {
+                        console.error('CSV Parsing Error:', error.message);
+                    }
+                });
+            } else {
+                csvContent.innerHTML = 'Please select a valid CSV file.';
+            }
+        });
+
+        // Display parsed CSV data in a table
+        function displayCSVData(data) {
+            let html = '<table border="1"><tr>';
+
+            for (const header of Object.keys(data[0])) {
+                html += `<th>${header}</th>`;
+            }
+            html += '</tr>';
+
+            for (const row of data) {
+                html += '<tr>';
+                for (const value of Object.values(row)) {
+                    html += `<td>${value}</td>`;
+                }
+                html += '</tr>';
+            }
+
+            html += '</table>';
+            csvContent.innerHTML = html;
+        }
+
+        // Create a form to select columns for import
+        function createColumnSelectionForm(headers) {
+            for (const header of headers) {
+                const label = document.createElement('label');
+                label.textContent = header;
+
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.name = 'columns';
+                checkbox.value = header;
+                checkbox.checked = true; // Default to checked
+
+                label.appendChild(checkbox);
+                columnForm.appendChild(label);
+            }
+        }
+
+        // Populate the numeric column select dropdown
+        function populateNumericColumnSelect(headers) {
+            for (const header of headers) {
+                const option = document.createElement('option');
+                option.value = header;
+                option.textContent = header;
+                numericColumnSelect.appendChild(option);
+            }
+        }
+
+        // Handle filter application
+        applyFilterButton.addEventListener('click', () => {
+            const numericColumn = numericColumnSelect.value;
+            const minValue = parseFloat(minValueInput.value);
+            const maxValue = parseFloat(maxValueInput.value);
+
+            if (isNaN(minValue) || isNaN(maxValue)) {
+                alert('Please enter valid numeric values for filtering.');
+                return;
+            }
+
+            // Apply the filter to the selected numeric column
+            const filteredData = csvData.filter((row) => {
+                const cellValue = parseFloat(row[numericColumn]);
+                return !isNaN(cellValue) && cellValue >= minValue && cellValue <= maxValue;
+            });
+
+            // Display the filtered data
+            displayCSVData(filteredData);
+        });
+    </script>
+</body>
+</html>

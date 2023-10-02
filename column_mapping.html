@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Column Mapping Example</title>
+</head>
+<body>
+    <input type="file" id="file-input" accept=".csv">
+    <div id="csv-content"></div>
+    <div id="column-selection">
+        <h2>Select Columns to Import:</h2>
+        <form id="column-form"></form>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <script>
+        // Get references to HTML elements
+        const fileInput = document.getElementById('file-input');
+        const csvContent = document.getElementById('csv-content');
+        const columnForm = document.getElementById('column-form');
+
+        let csvData; // Store parsed CSV data
+
+        // Handle file input change event
+        fileInput.addEventListener('change', (e) => {
+            const selectedFile = e.target.files[0];
+
+            if (selectedFile && selectedFile.name.endsWith('.csv')) {
+                // Read and parse the CSV file using papaparse
+                Papa.parse(selectedFile, {
+                    header: true,
+                    delimiter: ',',
+                    skipEmptyLines: true,
+                    dynamicTyping: true,
+
+                    complete: function (results) {
+                        csvData = results.data;
+                        displayCSVData(csvData);
+                        createColumnSelectionForm(csvData[0]);
+                    },
+                    error: function (error) {
+                        console.error('CSV Parsing Error:', error.message);
+                    }
+                });
+            } else {
+                csvContent.innerHTML = 'Please select a valid CSV file.';
+            }
+        });
+
+        // Display parsed CSV data in a table
+        function displayCSVData(data) {
+            let html = '<table border="1"><tr>';
+
+            for (const header of Object.keys(data[0])) {
+                html += `<th>${header}</th>`;
+            }
+            html += '</tr>';
+
+            for (const row of data) {
+                html += '<tr>';
+                for (const value of Object.values(row)) {
+                    html += `<td>${value}</td>`;
+                }
+                html += '</tr>';
+            }
+
+            html += '</table>';
+            csvContent.innerHTML = html;
+        }
+
+        // Create a form to select columns for import
+        function createColumnSelectionForm(headers) {
+            for (const header of headers) {
+                const label = document.createElement('label');
+                label.textContent = header;
+
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.name = 'columns';
+                checkbox.value = header;
+                checkbox.checked = true; // Default to checked
+
+                label.appendChild(checkbox);
+                columnForm.appendChild(label);
+            }
+        }
+    </script>
+</body>
+</html>

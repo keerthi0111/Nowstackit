@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSV Parsing Example</title>
+</head>
+<body>
+    <input type="file" id="file-input" accept=".csv">
+    <div id="csv-content"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <script>
+        // Get references to HTML elements
+        const fileInput = document.getElementById('file-input');
+        const csvContent = document.getElementById('csv-content');
+
+        // Handle file input change event
+        fileInput.addEventListener('change', (e) => {
+            const selectedFile = e.target.files[0];
+
+            if (selectedFile && selectedFile.name.endsWith('.csv')) {
+                // Read and parse the CSV file using papaparse
+                Papa.parse(selectedFile, {
+                    header: true, // Treat the first row as headers
+                    delimiter: ',', // You can specify the delimiter used in your CSV
+                    skipEmptyLines: true, // Skip empty lines
+                    dynamicTyping: true, // Automatically convert values to appropriate types
+
+                    complete: function (results) {
+                        // Callback function when parsing is complete
+                        displayCSVData(results.data);
+                    },
+                    error: function (error) {
+                        // Callback function if there's an error during parsing
+                        console.error('CSV Parsing Error:', error.message);
+                    }
+                });
+            } else {
+                csvContent.innerHTML = 'Please select a valid CSV file.';
+            }
+        });
+
+        // Display parsed CSV data in a div
+        function displayCSVData(data) {
+            let html = '<table border="1"><tr>';
+
+            // Create headers
+            for (const header of Object.keys(data[0])) {
+                html += `<th>${header}</th>`;
+            }
+            html += '</tr>';
+
+            // Create rows
+            for (const row of data) {
+                html += '<tr>';
+                for (const value of Object.values(row)) {
+                    html += `<td>${value}</td>`;
+                }
+                html += '</tr>';
+            }
+
+            html += '</table>';
+            csvContent.innerHTML = html;
+        }
+    </script>
+</body>
+</html>
